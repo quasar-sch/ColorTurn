@@ -1,0 +1,1781 @@
+요청하신 피드백을 모두 반영하여 **고딕 엔틱(Gothic Antique) & 매트 체스보드 스타일**로 전면 재설계한 완성본 코드입니다.
+
+### ✨ 주요 수정 및 개선 내역
+
+1. **'데스매치' 문구 완전 제거**: 타이틀 배지, 설명, 팁 카드 등 모든 영역에서 '데스매치' 단어를 빼고, 고전 심리 전략 보드게임의 품격 있는 문구로 교체했습니다.
+2. **네온/발광 효과 제거 및 매트(Matte) 질감 적용**: 쨍한 네온사인 빛 번짐(`text-shadow`, 형광 글로우)을 모두 걷어내고, 차분하고 묵직한 무광 스톤·황동·양피지 톤으로 다듬었습니다.
+
+
+3. **체스판 교차 타일 & 흑색 칩 가시성 극대화**:
+* 6×6 게임판을 **밝은 애쉬 스톤(`#d6cfc2`)과 웜 슬레이트(`#8c8275`)가 교차하는 체스판 패턴**으로 구성하여 어두운 배경에서도 칸 구분이 한눈에 들어오도록 개선했습니다.
+
+
+* **흑(Black) 칩**은 칠흑색(`#141416`) 본체에 **엔틱 골드(`#c59b27`) 테두리와 내부 황금 링**을 둘러, 게임판의 어떤 칸 위에 놓여도 선명하게 대비됩니다.
+
+
+
+
+4. **고딕(Gothic) 양식 장식 및 타이포그래피**: 네 모서리에 정교한 **고딕 성당 풍의 첨두아치·창살 문양(Tracery) SVG 장식**과 중앙 분할선을 배치하고, 고전 세리프 폰트(`Cinzel Decorative`, `Gowun Batang`)를 적용했습니다.
+
+
+
+아래 코드를 복사하여 `.html` 파일로 저장하신 뒤 실행해 보세요!
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>COLOR TURN - 고전 심리 전략 보드게임</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Gowun+Batang:wght@400;700&family=Pretendard:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* 매트 고딕 다크 & 엔틱 골드 팔레트 */
+      --bg-obsidian: #121110;
+      --bg-umbral: #1c1917;
+      --panel-bg: #1f1c19;
+      --panel-inner: #292521;
+      --border-brass: #9a7b3e;
+      --border-brass-light: #c8a962;
+      --border-iron: #3d3730;
+      --burgundy: #6e1e26;
+      --burgundy-light: #8f2934;
+      --text-parchment: #ebe3d5;
+      --text-muted: #a89f91;
+
+      /* 체스판 타일 색상 (흑색 칩과 확실히 대비되는 스톤/우드 톤) */
+      --board-frame: #2b231b;
+      --tile-light: #dcd3c2;
+      --tile-dark: #948775;
+      --tile-light-hover: #e6dfd1;
+      --tile-dark-hover: #a39684;
+
+      /* 흑/백 칩 (매트 질감 + 황동/은장 테두리로 가시성 극대화) */
+      --black-chip-main: #151517;
+      --black-chip-edge: #c59b27;
+      --white-chip-main: #f7f4eb;
+      --white-chip-edge: #6b6358;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Gowun Batang', 'Pretendard', serif;
+      color: var(--text-parchment);
+      background: radial-gradient(circle at 50% 35%, #26211d 0%, var(--bg-obsidian) 85%);
+      word-break: keep-all;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      padding: clamp(8px, 1.5vw, 18px);
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+    .screen.active {
+      display: grid;
+    }
+
+    /* 고딕 액자 프레임 */
+    .shell {
+      width: min(1020px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 2px solid var(--border-brass);
+      background: var(--panel-bg);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 0 0 6px var(--bg-obsidian), inset 0 0 0 7px var(--border-iron);
+      padding: clamp(14px, 2.2vw, 26px);
+    }
+
+    /* 고딕 모서리 장식 SVG */
+    .gothic-corner {
+      position: absolute;
+      width: clamp(38px, 5vw, 56px);
+      height: clamp(38px, 5vw, 56px);
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.85;
+    }
+    .gc-tl { top: 10px; left: 10px; }
+    .gc-tr { top: 10px; right: 10px; transform: scaleX(-1); }
+    .gc-bl { bottom: 10px; left: 10px; transform: scaleY(-1); }
+    .gc-br { bottom: 10px; right: 10px; transform: scale(-1, -1); }
+
+    /* 고딕 구분선 */
+    .gothic-divider {
+      width: min(320px, 80%);
+      height: 20px;
+      margin: 2px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gothic-divider svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 매트 버튼 스타일 */
+    button {
+      border: 1px solid var(--border-brass);
+      border-radius: 4px;
+      padding: 11px 18px;
+      font-family: 'Gowun Batang', 'Pretendard', serif;
+      font-size: clamp(13px, 1.6vw, 16px);
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-parchment);
+      background: #2c2622;
+      box-shadow: 0 3px 0 #110f0d;
+      transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+      word-break: keep-all;
+    }
+    button:hover {
+      background: #38302b;
+      border-color: var(--border-brass-light);
+    }
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #110f0d;
+    }
+    button:disabled {
+      opacity: 0.38;
+      pointer-events: none;
+    }
+    button.burgundy {
+      background: var(--burgundy);
+      border-color: var(--border-brass-light);
+      color: #f7f2e7;
+    }
+    button.burgundy:hover {
+      background: var(--burgundy-light);
+    }
+    button.brass {
+      color: #171411;
+      background: #b89748;
+      border-color: #e0c882;
+      font-weight: 800;
+    }
+    button.brass:hover {
+      background: #c8a756;
+    }
+    button.active-toggle {
+      outline: 2px solid var(--border-brass-light);
+      background: #423321;
+      color: #f3dc99;
+    }
+
+    /* 중앙 정렬 레이아웃 */
+    .center-layout {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 3;
+      overflow-y: auto;
+    }
+    .menu-box {
+      width: min(680px, 100%);
+      display: grid;
+      gap: clamp(10px, 1.8vh, 16px);
+      justify-items: center;
+      padding: 6px 0;
+    }
+    .badge-gothic {
+      padding: 4px 16px;
+      border: 1px solid var(--border-brass);
+      background: #171412;
+      color: var(--border-brass-light);
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(11px, 1.3vw, 13px);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+    .main-title {
+      margin: 0;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--text-parchment);
+    }
+    .sub-title {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: clamp(14px, 1.8vw, 18px);
+      font-weight: 700;
+    }
+    .screen-title {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 700;
+      color: var(--text-parchment);
+      letter-spacing: 0.02em;
+    }
+
+    /* 전략 팁 카드 (고딕 양피지/석판 스타일) */
+    .tip-card {
+      width: 100%;
+      padding: clamp(12px, 1.8vh, 16px) clamp(14px, 2vw, 20px);
+      border-radius: 4px;
+      background: var(--panel-inner);
+      border: 1px solid var(--border-brass);
+      border-left: 4px solid var(--border-brass-light);
+      text-align: left;
+      display: grid;
+      gap: 6px;
+    }
+    .tip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .tip-badge {
+      font-size: clamp(11px, 1.3vw, 13px);
+      font-weight: 700;
+      color: var(--border-brass-light);
+      letter-spacing: 0.04em;
+    }
+    .tip-next-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 3px;
+      background: #1b1815;
+      border: 1px solid var(--border-brass);
+      color: var(--text-parchment);
+      box-shadow: none;
+    }
+    .tip-title {
+      font-size: clamp(14px, 1.8vw, 17px);
+      font-weight: 700;
+      color: #f3e9d2;
+    }
+    .tip-body {
+      margin: 0;
+      color: var(--text-muted);
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(12px, 1.5vw, 14px);
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    /* 설명 화면 리스트 */
+    .guide-grid {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+      text-align: left;
+    }
+    .guide-item {
+      background: var(--panel-inner);
+      border: 1px solid var(--border-iron);
+      border-left: 4px solid var(--burgundy-light);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(12px, 1.5vw, 14px);
+      line-height: 1.48;
+      color: var(--text-parchment);
+    }
+    .guide-item strong {
+      font-family: 'Gowun Batang', serif;
+      color: var(--border-brass-light);
+      display: block;
+      margin-bottom: 3px;
+      font-size: clamp(13px, 1.6vw, 15px);
+    }
+
+    /* 모드 선택 카드 */
+    .mode-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      text-align: left;
+    }
+    .mode-card {
+      background: var(--panel-inner);
+      border: 1px solid var(--border-brass);
+      border-radius: 4px;
+      padding: clamp(12px, 1.8vw, 18px);
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+    }
+    .mode-card h3 {
+      margin: 0 0 6px 0;
+      font-size: clamp(16px, 2.1vw, 20px);
+      color: var(--border-brass-light);
+    }
+    .mode-card p {
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(12px, 1.4vw, 13.5px);
+      color: var(--text-muted);
+      line-height: 1.48;
+    }
+    .sub-options {
+      display: grid;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-iron);
+      font-family: 'Pretendard', sans-serif;
+    }
+    .sub-opt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .sub-opt-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--border-brass-light);
+    }
+    .opt-group {
+      display: flex;
+      gap: 5px;
+    }
+    .opt-group button {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: 'Pretendard', sans-serif;
+      box-shadow: none;
+    }
+    .opt-group button.selected {
+      background: var(--burgundy);
+      border-color: var(--border-brass-light);
+      color: #fff;
+    }
+
+    .btn-stack {
+      width: min(420px, 100%);
+      display: grid;
+      gap: 10px;
+    }
+    .btn-large {
+      min-height: clamp(48px, 6.8vh, 60px);
+      font-size: clamp(17px, 2.2vw, 21px);
+    }
+    .btn-row-2 {
+      width: min(420px, 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* 인게임 레이아웃 */
+    .game-layout {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: clamp(6px, 1.2vh, 12px);
+      position: relative;
+      z-index: 3;
+    }
+
+    /* 상단 HUD */
+    .hud-bar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel-inner);
+      border: 1px solid var(--border-brass);
+      border-radius: 4px;
+      padding: 8px 14px;
+    }
+    .player-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .player-status.right {
+      justify-content: flex-end;
+      text-align: right;
+    }
+    .chip-icon {
+      width: clamp(26px, 3.2vw, 32px);
+      height: clamp(26px, 3.2vw, 32px);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .chip-icon.black {
+      background: var(--black-chip-main);
+      border: 3px solid var(--black-chip-edge);
+      box-shadow: inset 0 0 0 2px #2c2517;
+    }
+    .chip-icon.white {
+      background: var(--white-chip-main);
+      border: 3px solid var(--white-chip-edge);
+      box-shadow: inset 0 0 0 2px #d5ccb9;
+    }
+    .status-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .status-name {
+      font-size: clamp(11px, 1.3vw, 13px);
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .status-rem {
+      font-size: clamp(14px, 1.8vw, 18px);
+      font-weight: 800;
+      color: var(--text-parchment);
+    }
+    .turn-center {
+      padding: 6px 18px;
+      border-radius: 4px;
+      background: #171513;
+      border: 2px solid var(--border-brass-light);
+      color: var(--text-parchment);
+      text-align: center;
+    }
+    .turn-center.white-turn {
+      background: #e8e0cf;
+      border-color: #6b6358;
+      color: #171513;
+    }
+    .turn-title {
+      font-size: clamp(15px, 2.1vw, 20px);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* 보드 영역 (체스판 스타일로 가시성 확보) */
+    .board-container {
+      min-height: 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      overflow: hidden;
+    }
+    .zone-label {
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(11px, 1.3vw, 13px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--border-brass-light);
+    }
+    .board {
+      height: calc(100% - 42px);
+      max-height: 100%;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 3px;
+      padding: clamp(8px, 1.2vw, 12px);
+      background: var(--board-frame);
+      border: 3px solid var(--border-brass);
+      border-radius: 4px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 0 2px #14110e;
+    }
+
+    /* 체스판 교차 타일 */
+    .tile {
+      position: relative;
+      border-radius: 2px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+      perspective: 600px;
+    }
+    .tile.light-sq {
+      background: var(--tile-light);
+    }
+    .tile.dark-sq {
+      background: var(--tile-dark);
+    }
+    .tile.light-sq:hover {
+      background: var(--tile-light-hover);
+    }
+    .tile.dark-sq:hover {
+      background: var(--tile-dark-hover);
+    }
+
+    /* 첫 줄 라인 구분 (상단 백 / 하단 흑 배치 구역) */
+    .tile.row-top {
+      box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.55);
+    }
+    .tile.row-bottom {
+      box-shadow: inset 0 -4px 0 rgba(20, 20, 22, 0.55);
+    }
+
+    /* 새 칩 배치 힌트 */
+    .tile.place-hint {
+      box-shadow: inset 0 0 0 3px #8f2934;
+    }
+    .tile.place-hint::after {
+      content: "❖";
+      font-size: clamp(16px, 2.2vw, 22px);
+      color: #7a1c24;
+      pointer-events: none;
+    }
+
+    /* 이동 가능 칸 표시 (매트한 고딕 다이아몬드 마커) */
+    .tile.valid-move::after {
+      content: "";
+      width: 28%;
+      height: 28%;
+      transform: rotate(45deg);
+      background: #7a1c24;
+      border: 2px solid #f7f2e7;
+      pointer-events: none;
+    }
+
+    /* 선택된 기물 칸 */
+    .tile.selected {
+      box-shadow: inset 0 0 0 4px var(--burgundy-light);
+    }
+
+    /* 승리 완성 줄 */
+    .tile.win-tile {
+      background: #8f2934 !important;
+      box-shadow: inset 0 0 0 3px #f3dc99;
+    }
+
+    /* 지뢰 작동 시 타일 반전 효과 (매트 크림슨) */
+    .tile.mine-triggered {
+      animation: mineFlash 0.65s ease-out;
+    }
+    @keyframes mineFlash {
+      0% { background: #8f2934; box-shadow: inset 0 0 0 4px #f3dc99; }
+      65% { background: #6e1e26; }
+    }
+
+    /* 칩 디자인: 체스판 위에서 흑/백 모두 선명하게 보이도록 이중 링과 대비 테두리 적용 */
+    .chip {
+      width: 78%;
+      height: 78%;
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      transition: transform 0.2s ease;
+    }
+    .chip::after {
+      content: "";
+      width: 66%;
+      height: 66%;
+      border-radius: 50%;
+    }
+    /* 흑색 칩: 짙은 오닉스 바디 + 엔틱 황동 외곽선 + 내부 황금 링 */
+    .chip.black {
+      background: var(--black-chip-main);
+      border: 3.5px solid var(--black-chip-edge);
+      box-shadow: 0 4px 7px rgba(0, 0, 0, 0.55);
+    }
+    .chip.black::after {
+      border: 1.5px solid rgba(197, 155, 39, 0.55);
+    }
+
+    /* 백색 칩: 따뜻한 아이보리 바디 + 다크 브론즈 외곽선 + 내부 브론즈 링 */
+    .chip.white {
+      background: var(--white-chip-main);
+      border: 3.5px solid var(--white-chip-edge);
+      box-shadow: 0 4px 7px rgba(0, 0, 0, 0.45);
+    }
+    .chip.white::after {
+      border: 1.5px solid rgba(107, 99, 88, 0.45);
+    }
+
+    .chip.flip-anim {
+      animation: chipFlip 0.55s ease-in-out;
+    }
+    @keyframes chipFlip {
+      0% { transform: scale(1) rotateY(0deg); }
+      50% { transform: scale(1.18) rotateY(90deg); }
+      100% { transform: scale(1) rotateY(180deg); }
+    }
+
+    .chip.shake-anim {
+      animation: denyShake 0.34s ease;
+    }
+    @keyframes denyShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    /* 하단 컨트롤 바 */
+    .bottom-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .msg-banner {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: var(--panel-inner);
+      border: 1px solid var(--border-brass);
+      color: var(--text-parchment);
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(12px, 1.5vw, 14.5px);
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .msg-banner.alert-mine {
+      background: #47151b;
+      border-color: #c8a962;
+      color: #f7e6c4;
+    }
+    .msg-banner.alert-deny {
+      background: #3d2a14;
+      border-color: #c8a962;
+      color: #f3dc99;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
+    .action-btns button {
+      min-height: 48px;
+      padding: 8px 12px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: clamp(12px, 1.4vw, 13.5px);
+      white-space: nowrap;
+    }
+
+    /* 모달 팝업 */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 7, 6, 0.82);
+      display: none;
+      place-items: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: grid;
+    }
+    .modal-card {
+      width: min(620px, 100%);
+      max-height: 86vh;
+      overflow-y: auto;
+      background: var(--panel-bg);
+      border: 2px solid var(--border-brass);
+      border-radius: 6px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+      display: grid;
+      gap: 14px;
+    }
+    .modal-card h3 {
+      margin: 0;
+      font-size: 21px;
+      color: var(--border-brass-light);
+      border-bottom: 1px solid var(--border-iron);
+      padding-bottom: 8px;
+    }
+    .modal-card ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-parchment);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+      display: grid;
+      gap: 8px;
+    }
+    .modal-card li strong {
+      color: var(--border-brass-light);
+    }
+
+    @media (max-width: 720px) {
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+      .bottom-bar {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .action-btns {
+        justify-content: stretch;
+      }
+      .action-btns button {
+        flex: 1;
+        min-height: 42px;
+      }
+      .msg-banner {
+        min-height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 재사용할 고딕 코너 SVG 템플릿 -->
+  <svg style="display:none;">
+    <symbol id="gothic-ornament" viewBox="0 0 64 64">
+      <path d="M2 62 V14 C2 7 7 2 14 2 H62" fill="none" stroke="#c8a962" stroke-width="2.5"/>
+      <path d="M8 54 V18 C8 12 12 8 18 8 H54" fill="none" stroke="#9a7b3e" stroke-width="1.2"/>
+      <path d="M2 26 C14 26 26 14 26 2" fill="none" stroke="#c8a962" stroke-width="1.5"/>
+      <polygon points="14,10 18,14 14,18 10,14" fill="#c8a962"/>
+      <circle cx="6" cy="6" r="2" fill="#c8a962"/>
+    </symbol>
+    <symbol id="gothic-div" viewBox="0 0 300 24">
+      <line x1="10" y1="12" x2="122" y2="12" stroke="#9a7b3e" stroke-width="1.2"/>
+      <line x1="178" y1="12" x2="290" y2="12" stroke="#9a7b3e" stroke-width="1.2"/>
+      <polygon points="150,3 159,12 150,21 141,12" fill="#6e1e26" stroke="#c8a962" stroke-width="1.5"/>
+      <polygon points="130,8 134,12 130,16 126,12" fill="#c8a962"/>
+      <polygon points="170,8 174,12 170,16 166,12" fill="#c8a962"/>
+    </symbol>
+  </svg>
+
+  <div class="app">
+    <!-- 1. 초기 메인 화면 -->
+    <section id="homeScreen" class="screen active">
+      <div class="shell center-layout">
+        <svg class="gothic-corner gc-tl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-tr"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-bl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-br"><use href="#gothic-ornament"/></svg>
+
+        <div class="menu-box">
+          <div class="badge-gothic">TACTICAL MEMORY BOARD GAME</div>
+          <h1 class="main-title">COLOR TURN</h1>
+          <div class="gothic-divider"><svg><use href="#gothic-div"/></svg></div>
+          <p class="sub-title">기억력과 수읽기의 고전 심리전, 컬러턴</p>
+
+          <!-- 랜덤 전략 팁 카드 -->
+          <div class="tip-card">
+            <div class="tip-header">
+              <span class="tip-badge">⚜️ 컬러턴 핵심 전략서</span>
+              <button class="tip-next-btn" onclick="showNextRandomTip()">다른 팁 보기 ↻</button>
+            </div>
+            <div id="homeTipTitle" class="tip-title"></div>
+            <p id="homeTipBody" class="tip-body"></p>
+          </div>
+
+          <div class="btn-stack">
+            <button class="burgundy btn-large" onclick="goIntroScreen()">게임 시작</button>
+          </div>
+          <div class="btn-row-2">
+            <button onclick="openModal('rulesModal')">상세 규칙</button>
+            <button onclick="openModal('tipsModal')">전체 전략 모음</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 게임 설명 브리핑 화면 -->
+    <section id="introScreen" class="screen">
+      <div class="shell center-layout">
+        <svg class="gothic-corner gc-tl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-tr"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-bl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-br"><use href="#gothic-ornament"/></svg>
+
+        <div class="menu-box">
+          <div class="badge-gothic">GAME BRIEFING</div>
+          <h2 class="screen-title">컬러턴 게임 설명</h2>
+          <div class="gothic-divider"><svg><use href="#gothic-div"/></svg></div>
+          <p class="sub-title">6×6 체스판 위에서 펼쳐지는 숨겨진 지뢰와 4목 수읽기</p>
+
+          <div class="guide-grid">
+            <div class="guide-item">
+              <strong>I. 기본 세팅 및 승리 조건</strong>
+              각 플레이어는 흑(Black) 또는 백(White) 칩을 7개씩 배정받습니다. 자신의 색깔 칩으로 가로·세로·대각선 중 한 방향으로 4개를 먼저 이으면 즉시 승리합니다.
+            </div>
+            <div class="guide-item">
+              <strong>II. 턴 진행: 칩 배치 또는 칩 이동</strong>
+              자신의 차례에 [새 칩 배치] 또는 [판 위의 칩 이동] 중 하나를 수행합니다. 새 칩을 배치할 때는 자신의 바로 앞 첫 번째 줄(흑: 맨 아랫줄 / 백: 맨 윗줄)의 빈칸에만 놓을 수 있습니다.
+            </div>
+            <div class="guide-item">
+              <strong>III. 피아 구분 없는 이동과 직전 턴 제한</strong>
+              판 위의 칩을 이동할 때는 내 칩과 상대 칩 구분 없이 아무 칩이나 주변 8칸 중 빈칸으로 1칸 옮길 수 있습니다. 단, 상대방이 직전 턴에 움직였거나 방금 배치한 칩은 이번 턴에 선택할 수 없습니다.
+            </div>
+            <div class="guide-item">
+              <strong>IV. 18개의 숨겨진 지뢰 (색상 반전)</strong>
+              가로 한 줄당 3개씩 총 18개의 지뢰가 숨겨져 있습니다. 배치나 이동으로 지뢰 칸에 칩이 들어가면 즉시 칩의 색상이 반대로 뒤바뀝니다. 지뢰는 일회용이 아니며 매 판 위치가 무작위로 재설정됩니다.
+            </div>
+          </div>
+
+          <div class="btn-row-2">
+            <button onclick="showScreen('homeScreen')">이전으로</button>
+            <button class="burgundy" onclick="goModeScreen()">모드 선택으로 이동 ➔</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 모드 및 난이도 선택 화면 -->
+    <section id="modeScreen" class="screen">
+      <div class="shell center-layout">
+        <svg class="gothic-corner gc-tl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-tr"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-bl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-br"><use href="#gothic-ornament"/></svg>
+
+        <div class="menu-box">
+          <div class="badge-gothic">SELECT MODE</div>
+          <h2 class="screen-title">플레이 모드 선택</h2>
+          <div class="gothic-divider"><svg><use href="#gothic-div"/></svg></div>
+
+          <div class="mode-grid">
+            <!-- VS 컴퓨터 카드 -->
+            <div class="mode-card">
+              <div>
+                <h3>⚜️ VS 컴퓨터 (AI 대국)</h3>
+                <p>인공지능을 상대로 치밀한 수읽기 대결을 벌입니다. 공정한 승부를 위해 컴퓨터 역시 한 번 발동된 지뢰만 기억하는 암기력 제한이 적용됩니다.</p>
+              </div>
+              <div class="sub-options">
+                <div class="sub-opt-row">
+                  <span class="sub-opt-label">AI 난이도</span>
+                  <div class="opt-group">
+                    <button id="diffEasy" onclick="setDifficulty('easy')">쉬움</button>
+                    <button id="diffNormal" class="selected" onclick="setDifficulty('normal')">보통</button>
+                    <button id="diffHard" onclick="setDifficulty('hard')">어려움</button>
+                  </div>
+                </div>
+                <div class="sub-opt-row">
+                  <span class="sub-opt-label">내 진영</span>
+                  <div class="opt-group">
+                    <button id="sideB" class="selected" onclick="setHumanSide('B')">흑 (선공)</button>
+                    <button id="sideW" onclick="setHumanSide('W')">백 (후공)</button>
+                  </div>
+                </div>
+              </div>
+              <button class="burgundy" onclick="startGame('ai')">컴퓨터 대국 시작</button>
+            </div>
+
+            <!-- 2인 멀티플레이 카드 -->
+            <div class="mode-card">
+              <div>
+                <h3>⚔️ 2인 멀티플레이</h3>
+                <p>태블릿 하나를 두고 두 명의 플레이어가 번갈아가며 대국합니다. 하단 진영(흑)이 먼저 시작하며, 서로가 밟은 지뢰의 위치를 누가 더 정확히 암기하느냐가 승패를 가릅니다.</p>
+              </div>
+              <div class="sub-options">
+                <div class="sub-opt-row">
+                  <span class="sub-opt-label">하단 진영</span>
+                  <span style="font-size:12px; color:var(--text-parchment); font-weight:700;">흑 (선공 · 6행 배치)</span>
+                </div>
+                <div class="sub-opt-row">
+                  <span class="sub-opt-label">상단 진영</span>
+                  <span style="font-size:12px; color:var(--text-parchment); font-weight:700;">백 (후공 · 1행 배치)</span>
+                </div>
+              </div>
+              <button class="brass" onclick="startGame('multi')">2인 대국 시작</button>
+            </div>
+          </div>
+
+          <!-- 랜덤 전략 팁 카드 -->
+          <div class="tip-card">
+            <div class="tip-header">
+              <span class="tip-badge">⚜️ 실전 공략 팁</span>
+              <button class="tip-next-btn" onclick="showNextRandomTip()">다른 팁 보기 ↻</button>
+            </div>
+            <div id="modeTipTitle" class="tip-title"></div>
+            <p id="modeTipBody" class="tip-body"></p>
+          </div>
+
+          <div class="btn-row-2">
+            <button onclick="showScreen('introScreen')">게임 설명 보기</button>
+            <button onclick="showScreen('homeScreen')">메인 화면으로</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 본 게임 화면 -->
+    <section id="gameScreen" class="screen">
+      <div class="shell game-layout">
+        <svg class="gothic-corner gc-tl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-tr"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-bl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-br"><use href="#gothic-ornament"/></svg>
+
+        <!-- 상단 HUD -->
+        <div class="hud-bar">
+          <div class="player-status">
+            <div class="chip-icon black"></div>
+            <div class="status-text">
+              <span id="blackRoleName" class="status-name">흑 (하단 6행 배치)</span>
+              <span id="blackRemCount" class="status-rem">남은 칩: 7개</span>
+            </div>
+          </div>
+
+          <div id="turnBox" class="turn-center">
+            <div id="turnText" class="turn-title">흑 차례</div>
+          </div>
+
+          <div class="player-status right">
+            <div class="status-text">
+              <span id="whiteRoleName" class="status-name">백 (상단 1행 배치)</span>
+              <span id="whiteRemCount" class="status-rem">남은 칩: 7개</span>
+            </div>
+            <div class="chip-icon white"></div>
+          </div>
+        </div>
+
+        <!-- 중앙 6x6 체스판 보드 -->
+        <div class="board-container">
+          <div class="zone-label">▲ 백(White) 첫 번째 줄 배치 구역 ▲</div>
+          <div id="board" class="board" aria-label="컬러턴 6x6 게임판"></div>
+          <div class="zone-label">▼ 흑(Black) 첫 번째 줄 배치 구역 ▼</div>
+        </div>
+
+        <!-- 하단 메시지 및 액션 버튼 -->
+        <div class="bottom-bar">
+          <div id="msgBanner" class="msg-banner">자신의 첫 번째 줄에 새 칩을 놓거나 판 위의 칩을 이동하세요.</div>
+          <div class="action-btns">
+            <button id="btnPlaceMode" onclick="togglePlaceHint()">+ 새 칩 배치</button>
+            <button onclick="openModal('tipsModal')">전략 팁</button>
+            <button onclick="restartCurrentGame()">재시작</button>
+            <button onclick="showScreen('homeScreen')">메인으로</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 결과 화면 -->
+    <section id="resultScreen" class="screen">
+      <div class="shell center-layout">
+        <svg class="gothic-corner gc-tl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-tr"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-bl"><use href="#gothic-ornament"/></svg>
+        <svg class="gothic-corner gc-br"><use href="#gothic-ornament"/></svg>
+
+        <div class="menu-box">
+          <div class="badge-gothic">MATCH FINISHED</div>
+          <h2 id="resultTitle" class="main-title" style="font-size:clamp(34px,5.8vw,60px); font-family:'Gowun Batang',serif;">흑 승리!</h2>
+          <div class="gothic-divider"><svg><use href="#gothic-div"/></svg></div>
+          <p id="resultSub" class="sub-title">4개의 칩이 한 줄로 연결되었습니다.</p>
+
+          <div class="tip-card">
+            <div class="tip-header">
+              <span class="tip-badge">⚜️ 복기용 전략 팁</span>
+              <button class="tip-next-btn" onclick="showNextRandomTip()">다른 팁 보기 ↻</button>
+            </div>
+            <div id="resultTipTitle" class="tip-title"></div>
+            <p id="resultTipBody" class="tip-body"></p>
+          </div>
+
+          <div class="btn-stack">
+            <button class="burgundy btn-large" onclick="restartCurrentGame()">같은 설정으로 재대국 (지뢰 재배치)</button>
+            <button onclick="showScreen('modeScreen')">모드 다시 선택</button>
+            <button onclick="showScreen('homeScreen')">메인 화면으로</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 상세 규칙 모달 -->
+  <div id="rulesModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'rulesModal')">
+    <div class="modal-card">
+      <h3>📜 컬러턴 상세 규칙</h3>
+      <ul>
+        <li><strong>게임판과 칩:</strong> 6×6 게임판에서 진행하며, 흑·백 플레이어는 각각 7개의 칩을 배정받습니다.</li>
+        <li><strong>새 칩 배치:</strong> 아직 올려놓지 않은 내 칩 1개를 자신의 바로 앞 첫 번째 줄(흑: 맨 아랫줄, 백: 맨 윗줄)의 비어있는 칸에만 놓을 수 있습니다.</li>
+        <li><strong>칩 이동:</strong> 내 칩과 상대 칩의 색상 구분 없이 판 위에 있는 칩 1개를 주변 8칸(상하좌우 및 대각선) 중 빈칸으로 이동시킵니다.</li>
+        <li><strong>직전 턴 이동 불가:</strong> 상대 플레이어가 직전 턴에 움직였거나 방금 배치한 칩은 이번 턴에 선택하여 움직일 수 없습니다.</li>
+        <li><strong>지뢰(색상 반전):</strong> 가로 한 줄당 3개씩 총 18개의 지뢰가 숨겨져 있습니다. 배치나 이동으로 지뢰 칸에 들어간 칩은 즉시 반대 색깔로 바뀝니다. 지뢰는 사라지지 않고 영구 작동합니다.</li>
+        <li><strong>승리 조건:</strong> 가로, 세로, 대각선 중 한 방향으로 같은 색 칩 4개가 이어지면 해당 색상의 플레이어가 즉시 승리합니다.</li>
+      </ul>
+      <button class="burgundy" onclick="closeModal('rulesModal')">닫기</button>
+    </div>
+  </div>
+
+  <!-- 전체 전략 팁 모달 -->
+  <div id="tipsModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'tipsModal')">
+    <div class="modal-card">
+      <h3>⚜️ 컬러턴 필승 전략서</h3>
+      <ul id="allTipsList"></ul>
+      <button class="burgundy" onclick="closeModal('tipsModal')">닫기</button>
+    </div>
+  </div>
+
+  <script>
+    // 전략 팁 데이터베이스
+    const STRATEGY_TIPS = [
+      {
+        title: "칩 늘리기 — 공격 범위 확보",
+        body: "자신의 색깔 칩을 늘리는 것이 매우 유리합니다. 판 위에 내 색깔 칩이 많아질수록 공격 가능 범위가 넓어지기 때문입니다."
+      },
+      {
+        title: "칩 모아서 배치하기 — 공격과 방어",
+        body: "4목을 만드는 게임이므로 칩을 모아서 배치하는 것이 유리합니다. 공격자는 내 칩 근처에 두어 공격하고, 방어자는 상대 칩 근처에 두어 방어하며 역공 기회를 노리세요."
+      },
+      {
+        title: "지뢰 피하기 — 승패의 핵심",
+        body: "지뢰를 밟는 건 굉장히 치명적입니다. 내 턴을 소모해 상대방 칩을 늘려주며 상대에겐 턴이 남아 지뢰 한 번에 칩이 2개씩 차이날 수 있습니다. 지뢰만 피해도 게임이 압도적으로 유리해집니다."
+      },
+      {
+        title: "지뢰 암기하기 — 18개의 함정",
+        body: "지뢰에 따라 내 칩이 상대 칩이 되고 상대 칩이 내 칩이 되므로 한 번 확인된 지뢰 위치는 반드시 외워야 합니다."
+      },
+      {
+        title: "지뢰 위치 추론하기 — 줄당 3개의 법칙",
+        body: "지뢰는 가로 한 줄당 정확히 3개씩만 숨겨져 있습니다. 한 줄에서 확인된 지뢰나 안전지대 개수를 세어보면 아직 밟지 않은 칸의 지뢰 여부도 추론할 수 있습니다."
+      },
+      {
+        title: "지뢰 밟기 유도하기 — 2목 공격",
+        body: "2목 공격을 통해 상대가 급하게 방어하도록 압박하면, 상대가 검증되지 않은 지뢰 칸을 밟도록 유도할 수 있습니다."
+      },
+      {
+        title: "초반부 전략 — 적극적인 칩 배치",
+        body: "초반부엔 내 칩을 적극적으로 배치하는 것이 훨씬 유리합니다. 초반에 내 칩을 옮기는 수는 웬만하면 패착이며, 지뢰까지 밟으면 상대와 칩 개수가 최대 3개까지 벌어집니다."
+      },
+      {
+        title: "초반 주의사항 — 상대 칩으로 지뢰 찾기 금물",
+        body: "초반에 상대 칩을 움직여 지뢰를 찾는 것도 좋은 수가 아닙니다. 지뢰를 못 찾으면 배치된 칩 개수가 2개 벌어지고, 설령 지뢰를 찾아 내 칩으로 바꿔도 겨우 본전이 되기 때문입니다."
+      },
+      {
+        title: "중반부 이후 [Case 1] — 단기전으로 끝낼 경우",
+        body: "암기와 추론으로 지뢰를 피해 칩을 적극적으로 배치하세요. 이동을 통한 공격은 범위의 한계가 있지만, 배치를 통한 공격은 범위가 넓어 상대방이 방어하기 매우 난감합니다."
+      },
+      {
+        title: "중반부 이후 [Case 2] — 장기전으로 끌고 갈 경우",
+        body: "배치 가능한 칩은 7개로 제한되어 있으므로 칩을 남발하면 안 됩니다. 장기전을 노릴 때는 이미 기억해 둔 지뢰 칸으로 상대방의 칩을 밀어 넣어 내 칩으로 바꾸는 플레이가 좋습니다."
+      }
+    ];
+
+    let currentTipIndex = 0;
+
+    const state = {
+      mode: 'ai',
+      difficulty: 'normal',
+      humanSide: 'B',
+      turn: 'B',
+      board: [],
+      mines: [],
+      knownMines: [],
+      remChips: { B: 7, W: 7 },
+      lastTouchedPos: null,
+      selectedPos: null,
+      placeHintMode: false,
+      isAnimating: false,
+      gameOver: false,
+      winLine: []
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAllTipsModal();
+      showRandomTip();
+    });
+
+    function renderAllTipsModal() {
+      const ul = document.getElementById('allTipsList');
+      ul.innerHTML = STRATEGY_TIPS.map(t => `<li><strong>${t.title}:</strong> ${t.body}</li>`).join('');
+    }
+
+    function showRandomTip() {
+      currentTipIndex = Math.floor(Math.random() * STRATEGY_TIPS.length);
+      updateTipBoxes();
+    }
+
+    function showNextRandomTip() {
+      let next = Math.floor(Math.random() * STRATEGY_TIPS.length);
+      if (next === currentTipIndex) {
+        next = (currentTipIndex + 1) % STRATEGY_TIPS.length;
+      }
+      currentTipIndex = next;
+      updateTipBoxes();
+    }
+
+    function updateTipBoxes() {
+      const tip = STRATEGY_TIPS[currentTipIndex];
+      const targets = [
+        ['homeTipTitle', 'homeTipBody'],
+        ['modeTipTitle', 'modeTipBody'],
+        ['resultTipTitle', 'resultTipBody']
+      ];
+      targets.forEach(([tId, bId]) => {
+        const tEl = document.getElementById(tId);
+        const bEl = document.getElementById(bId);
+        if (tEl && bEl) {
+          tEl.textContent = tip.title;
+          bEl.textContent = tip.body;
+        }
+      });
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      showRandomTip();
+    }
+
+    function goIntroScreen() {
+      showScreen('introScreen');
+    }
+
+    function goModeScreen() {
+      showScreen('modeScreen');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+    function closeModalOnBackdrop(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    function setDifficulty(diff) {
+      state.difficulty = diff;
+      document.getElementById('diffEasy').classList.toggle('selected', diff === 'easy');
+      document.getElementById('diffNormal').classList.toggle('selected', diff === 'normal');
+      document.getElementById('diffHard').classList.toggle('selected', diff === 'hard');
+    }
+
+    function setHumanSide(side) {
+      state.humanSide = side;
+      document.getElementById('sideB').classList.toggle('selected', side === 'B');
+      document.getElementById('sideW').classList.toggle('selected', side === 'W');
+    }
+
+    function startGame(mode) {
+      state.mode = mode;
+      initMatch();
+      showScreen('gameScreen');
+    }
+
+    function restartCurrentGame() {
+      initMatch();
+      showScreen('gameScreen');
+    }
+
+    function initMatch() {
+      state.turn = 'B';
+      state.board = Array.from({ length: 6 }, () => Array(6).fill(null));
+      state.mines = Array.from({ length: 6 }, () => Array(6).fill(false));
+      state.knownMines = Array.from({ length: 6 }, () => Array(6).fill(false));
+      state.remChips = { B: 7, W: 7 };
+      state.lastTouchedPos = null;
+      state.selectedPos = null;
+      state.placeHintMode = false;
+      state.isAnimating = false;
+      state.gameOver = false;
+      state.winLine = [];
+
+      // 각 행마다 무작위 3개 지뢰 배치
+      for (let r = 0; r < 6; r++) {
+        const cols = [0, 1, 2, 3, 4, 5];
+        for (let i = cols.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cols[i], cols[j]] = [cols[j], cols[i]];
+        }
+        for (let k = 0; k < 3; k++) {
+          state.mines[r][cols[k]] = true;
+        }
+      }
+
+      updateHUD();
+      renderBoard();
+      setBanner("대국이 시작되었습니다. 첫 줄 빈칸을 눌러 새 칩을 놓거나 판 위의 칩을 이동하세요.", "");
+
+      if (state.mode === 'ai' && state.turn !== state.humanSide) {
+        triggerAITurn();
+      }
+    }
+
+    function getFirstRow(player) {
+      return player === 'B' ? 5 : 0;
+    }
+
+    function getOppositeColor(color) {
+      return color === 'B' ? 'W' : 'B';
+    }
+
+    function updateHUD() {
+      const bRole = state.mode === 'ai'
+        ? (state.humanSide === 'B' ? '흑 (플레이어 · 6행)' : '흑 (컴퓨터 · 6행)')
+        : '흑 (하단 플레이어 · 6행)';
+      const wRole = state.mode === 'ai'
+        ? (state.humanSide === 'W' ? '백 (플레이어 · 1행)' : '백 (컴퓨터 · 1행)')
+        : '백 (상단 플레이어 · 1행)';
+
+      document.getElementById('blackRoleName').textContent = bRole;
+      document.getElementById('whiteRoleName').textContent = wRole;
+      document.getElementById('blackRemCount').textContent = `남은 칩: ${state.remChips.B}개`;
+      document.getElementById('whiteRemCount').textContent = `남은 칩: ${state.remChips.W}개`;
+
+      const turnBox = document.getElementById('turnBox');
+      const turnText = document.getElementById('turnText');
+      turnBox.classList.toggle('white-turn', state.turn === 'W');
+      turnText.textContent = state.turn === 'B' ? '흑(Black) 차례' : '백(White) 차례';
+
+      const btnPlace = document.getElementById('btnPlaceMode');
+      const canPlace = state.remChips[state.turn] > 0 && hasEmptyFirstRow(state.turn);
+      btnPlace.disabled = !canPlace || (state.mode === 'ai' && state.turn !== state.humanSide);
+      btnPlace.classList.toggle('active-toggle', state.placeHintMode);
+    }
+
+    function hasEmptyFirstRow(player) {
+      const row = getFirstRow(player);
+      for (let c = 0; c < 6; c++) {
+        if (state.board[row][c] === null) return true;
+      }
+      return false;
+    }
+
+    function setBanner(text, type) {
+      const banner = document.getElementById('msgBanner');
+      banner.textContent = text;
+      banner.className = 'msg-banner';
+      if (type === 'mine') banner.classList.add('alert-mine');
+      if (type === 'deny') banner.classList.add('alert-deny');
+    }
+
+    function togglePlaceHint() {
+      if (state.isAnimating || state.gameOver) return;
+      state.selectedPos = null;
+      state.placeHintMode = !state.placeHintMode;
+      if (state.placeHintMode) {
+        const rowNum = state.turn === 'B' ? '맨 아랫줄(6행)' : '맨 윗줄(1행)';
+        setBanner(`새 칩 배치 모드: ${rowNum}의 표시된(❖) 빈칸을 터치하면 새 칩을 배치합니다.`, "");
+      } else {
+        setBanner("자신의 첫 번째 줄 빈칸에 새 칩을 놓거나 판 위의 칩을 터치해 이동하세요.", "");
+      }
+      updateHUD();
+      renderBoard();
+    }
+
+    function isAdjacent(r1, c1, r2, c2) {
+      const dr = Math.abs(r1 - r2);
+      const dc = Math.abs(c1 - c2);
+      return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0);
+    }
+
+    function renderBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+
+      const firstRow = getFirstRow(state.turn);
+      const isHumanTurn = state.mode === 'multi' || state.turn === state.humanSide;
+      const showPlaceHints = isHumanTurn && !state.selectedPos && state.remChips[state.turn] > 0;
+
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          const tile = document.createElement('div');
+          const isLight = (r + c) % 2 === 0;
+          tile.className = `tile ${isLight ? 'light-sq' : 'dark-sq'}`;
+          tile.dataset.r = r;
+          tile.dataset.c = c;
+
+          if (r === 0) tile.classList.add('row-top');
+          if (r === 5) tile.classList.add('row-bottom');
+
+          if (state.winLine.some(pos => pos.r === r && pos.c === c)) {
+            tile.classList.add('win-tile');
+          }
+
+          if (state.selectedPos && state.selectedPos.r === r && state.selectedPos.c === c) {
+            tile.classList.add('selected');
+          }
+
+          if (
+            state.selectedPos &&
+            state.board[r][c] === null &&
+            isAdjacent(state.selectedPos.r, state.selectedPos.c, r, c)
+          ) {
+            tile.classList.add('valid-move');
+          }
+
+          if (showPlaceHints && r === firstRow && state.board[r][c] === null && state.placeHintMode) {
+            tile.classList.add('place-hint');
+          }
+
+          const cellVal = state.board[r][c];
+          if (cellVal) {
+            const chip = document.createElement('div');
+            chip.className = `chip ${cellVal === 'B' ? 'black' : 'white'}`;
+            tile.appendChild(chip);
+          }
+
+          tile.addEventListener('click', () => onTileClick(r, c));
+          boardEl.appendChild(tile);
+        }
+      }
+    }
+
+    function getTileElement(r, c) {
+      return document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
+    }
+
+    function onTileClick(r, c) {
+      if (state.isAnimating || state.gameOver) return;
+      if (state.mode === 'ai' && state.turn !== state.humanSide) return;
+
+      const clickedChip = state.board[r][c];
+      const myFirstRow = getFirstRow(state.turn);
+
+      // 1) 판 위의 칩을 터치한 경우
+      if (clickedChip !== null) {
+        state.placeHintMode = false;
+
+        if (state.selectedPos && state.selectedPos.r === r && state.selectedPos.c === c) {
+          state.selectedPos = null;
+          setBanner("칩 선택을 취소했습니다.", "");
+          updateHUD();
+          renderBoard();
+          return;
+        }
+
+        if (state.lastTouchedPos && state.lastTouchedPos.r === r && state.lastTouchedPos.c === c) {
+          const tileEl = getTileElement(r, c);
+          const chipEl = tileEl ? tileEl.querySelector('.chip') : null;
+          if (chipEl) {
+            chipEl.classList.remove('shake-anim');
+            void chipEl.offsetWidth;
+            chipEl.classList.add('shake-anim');
+          }
+          setBanner("⛔ 상대 플레이어가 직전 턴에 움직인 칩은 이번 턴에 선택할 수 없습니다!", "deny");
+          return;
+        }
+
+        if (!hasEmptyNeighbor(r, c)) {
+          const tileEl = getTileElement(r, c);
+          const chipEl = tileEl ? tileEl.querySelector('.chip') : null;
+          if (chipEl) {
+            chipEl.classList.remove('shake-anim');
+            void chipEl.offsetWidth;
+            chipEl.classList.add('shake-anim');
+          }
+          setBanner("⚠️ 주변 8칸이 모두 막혀 있어 이동할 수 없는 칩입니다.", "deny");
+          return;
+        }
+
+        state.selectedPos = { r, c };
+        setBanner("이동할 주변 빈칸(붉은 마름모 표식)을 터치하세요.", "");
+        updateHUD();
+        renderBoard();
+        return;
+      }
+
+      // 2) 빈칸을 터치한 경우 — 선택된 칩이 있다면 이동 시도
+      if (state.selectedPos) {
+        if (isAdjacent(state.selectedPos.r, state.selectedPos.c, r, c)) {
+          executeAction({
+            type: 'move',
+            fromR: state.selectedPos.r,
+            fromC: state.selectedPos.c,
+            toR: r,
+            toC: c
+          });
+          return;
+        } else {
+          state.selectedPos = null;
+          if (r === myFirstRow && state.remChips[state.turn] > 0) {
+            executeAction({ type: 'place', toR: r, toC: c });
+            return;
+          }
+          setBanner("이동 범위를 벗어나 선택이 해제되었습니다.", "");
+          updateHUD();
+          renderBoard();
+          return;
+        }
+      }
+
+      // 3) 선택된 칩 없이 빈칸을 터치한 경우 -> 내 첫 줄이면 새 칩 배치
+      if (r === myFirstRow) {
+        if (state.remChips[state.turn] > 0) {
+          executeAction({ type: 'place', toR: r, toC: c });
+        } else {
+          setBanner("⚠️ 배정받은 7개의 칩을 모두 배치했습니다! 이제 판 위의 칩을 이동시키세요.", "deny");
+        }
+      } else {
+        const rowGuide = state.turn === 'B' ? '맨 아랫줄(6행)' : '맨 윗줄(1행)';
+        setBanner(`💡 새 칩은 자신의 첫 번째 줄(${rowGuide})에만 놓을 수 있습니다.`, "");
+      }
+    }
+
+    function hasEmptyNeighbor(r, c) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr >= 0 && nr < 6 && nc >= 0 && nc < 6 && state.board[nr][nc] === null) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function executeAction(action) {
+      state.isAnimating = true;
+      state.selectedPos = null;
+      state.placeHintMode = false;
+
+      let chipColor = state.turn;
+      if (action.type === 'place') {
+        state.remChips[state.turn]--;
+        state.board[action.toR][action.toC] = chipColor;
+      } else {
+        chipColor = state.board[action.fromR][action.fromC];
+        state.board[action.fromR][action.fromC] = null;
+        state.board[action.toR][action.toC] = chipColor;
+      }
+
+      state.lastTouchedPos = { r: action.toR, c: action.toC };
+      updateHUD();
+      renderBoard();
+
+      const hitMine = state.mines[action.toR][action.toC];
+
+      if (hitMine) {
+        state.knownMines[action.toR][action.toC] = true;
+        const tileEl = getTileElement(action.toR, action.toC);
+        const chipEl = tileEl ? tileEl.querySelector('.chip') : null;
+
+        if (tileEl) tileEl.classList.add('mine-triggered');
+        if (chipEl) chipEl.classList.add('flip-anim');
+
+        setBanner("💥 지뢰 작동! 숨겨진 지뢰를 밟아 칩의 색상이 반전됩니다!", "mine");
+
+        setTimeout(() => {
+          state.board[action.toR][action.toC] = getOppositeColor(chipColor);
+          renderBoard();
+          const updatedTile = getTileElement(action.toR, action.toC);
+          if (updatedTile) updatedTile.classList.add('mine-triggered');
+        }, 270);
+
+        setTimeout(() => {
+          finishTurnAfterAction(true);
+        }, 680);
+      } else {
+        const actLabel = action.type === 'place' ? '새 칩을 배치했습니다.' : '칩을 이동했습니다.';
+        setBanner(`${state.turn === 'B' ? '흑' : '백'}이 안전하게 ${actLabel}`, "");
+        setTimeout(() => {
+          finishTurnAfterAction(false);
+        }, 220);
+      }
+    }
+
+    function finishTurnAfterAction(wasMine) {
+      const winCheck = checkFourInARow(state.board);
+      if (winCheck) {
+        state.gameOver = true;
+        state.isAnimating = false;
+        state.winLine = winCheck.line;
+        renderBoard();
+
+        const winnerName = winCheck.winner === 'B' ? '흑(Black)' : '백(White)';
+        setBanner(`🏆 ${winnerName} 4목 완성! 대국에서 승리했습니다!`, "");
+
+        setTimeout(() => {
+          showResultScreen(winCheck.winner);
+        }, 1100);
+        return;
+      }
+
+      state.turn = getOppositeColor(state.turn);
+
+      const legalMoves = getAllLegalActions(state.turn);
+      if (legalMoves.length === 0) {
+        state.gameOver = true;
+        state.isAnimating = false;
+        showResultScreen('DRAW');
+        return;
+      }
+
+      state.isAnimating = false;
+      updateHUD();
+      renderBoard();
+
+      if (!wasMine) {
+        setBanner(`${state.turn === 'B' ? '흑(Black)' : '백(White)'} 차례입니다. 첫 줄에 새 칩을 놓거나 판 위의 칩을 이동하세요.`, "");
+      }
+
+      if (state.mode === 'ai' && state.turn !== state.humanSide) {
+        triggerAITurn();
+      }
+    }
+
+    function showResultScreen(winner) {
+      const titleEl = document.getElementById('resultTitle');
+      const subEl = document.getElementById('resultSub');
+
+      if (winner === 'DRAW') {
+        titleEl.textContent = "무승부 (DRAW)";
+        subEl.textContent = "더 이상 배치하거나 이동할 수 있는 칩이 없습니다.";
+      } else {
+        const kor = winner === 'B' ? '흑(Black)' : '백(White)';
+        if (state.mode === 'ai') {
+          const isHumanWin = winner === state.humanSide;
+          titleEl.textContent = isHumanWin ? `승리! (${kor})` : `패배... (${kor} 승)`;
+          subEl.textContent = isHumanWin
+            ? "치밀한 암기력과 수읽기로 컴퓨터를 제압했습니다!"
+            : "컴퓨터가 먼저 4개의 칩을 한 줄로 연결했습니다.";
+        } else {
+          titleEl.textContent = `${kor} 승리!`;
+          subEl.textContent = "가로·세로·대각선 중 한 방향으로 4개의 칩이 연결되었습니다!";
+        }
+      }
+      showScreen('resultScreen');
+    }
+
+    function checkFourInARow(bd) {
+      const dirs = [
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [1, -1]
+      ];
+
+      let bLine = null;
+      let wLine = null;
+
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          const color = bd[r][c];
+          if (!color) continue;
+
+          for (const [dr, dc] of dirs) {
+            if (r + dr * 3 < 0 || r + dr * 3 >= 6 || c + dc * 3 < 0 || c + dc * 3 >= 6) continue;
+            if (
+              bd[r + dr][c + dc] === color &&
+              bd[r + dr * 2][c + dc * 2] === color &&
+              bd[r + dr * 3][c + dc * 3] === color
+            ) {
+              const line = [
+                { r, c },
+                { r: r + dr, c: c + dc },
+                { r: r + dr * 2, c: c + dc * 2 },
+                { r: r + dr * 3, c: c + dc * 3 }
+              ];
+              if (color === 'B') bLine = line;
+              if (color === 'W') wLine = line;
+            }
+          }
+        }
+      }
+
+      if (bLine && wLine) return { winner: 'DRAW', line: [...bLine, ...wLine] };
+      if (bLine) return { winner: 'B', line: bLine };
+      if (wLine) return { winner: 'W', line: wLine };
+      return null;
+    }
+
+    function getAllLegalActions(player) {
+      const actions = [];
+      const firstRow = getFirstRow(player);
+
+      if (state.remChips[player] > 0) {
+        for (let c = 0; c < 6; c++) {
+          if (state.board[firstRow][c] === null) {
+            actions.push({ type: 'place', toR: firstRow, toC: c });
+          }
+        }
+      }
+
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          if (state.board[r][c] === null) continue;
+          if (state.lastTouchedPos && state.lastTouchedPos.r === r && state.lastTouchedPos.c === c) {
+            continue;
+          }
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = r + dr;
+              const nc = c + dc;
+              if (nr >= 0 && nr < 6 && nc >= 0 && nc < 6 && state.board[nr][nc] === null) {
+                actions.push({ type: 'move', fromR: r, fromC: c, toR: nr, toC: nc });
+              }
+            }
+          }
+        }
+      }
+      return actions;
+    }
+
+    function triggerAITurn() {
+      state.isAnimating = true;
+      setBanner("🤖 컴퓨터가 지뢰 위치를 추론하며 수를 계산하고 있습니다...", "");
+
+      setTimeout(() => {
+        if (state.gameOver) return;
+        const aiColor = state.turn;
+        const legalActions = getAllLegalActions(aiColor);
+        if (legalActions.length === 0) return;
+
+        let chosen = null;
+        if (state.difficulty === 'easy') {
+          chosen = pickEasyAI(legalActions, aiColor);
+        } else if (state.difficulty === 'normal') {
+          chosen = pickNormalAI(legalActions, aiColor);
+        } else {
+          chosen = pickHardAI(legalActions, aiColor);
+        }
+
+        executeAction(chosen);
+      }, 550);
+    }
+
+    function simulateKnownAction(bd, action, actorColor) {
+      const nextBd = bd.map(row => [...row]);
+      let color = actorColor;
+      if (action.type === 'move') {
+        color = nextBd[action.fromR][action.fromC];
+        nextBd[action.fromR][action.fromC] = null;
+      }
+      if (state.knownMines[action.toR][action.toC]) {
+        color = getOppositeColor(color);
+      }
+      nextBd[action.toR][action.toC] = color;
+      return nextBd;
+    }
+
+    function evaluateBoardFor(bd, aiColor, action, remChipsCount) {
+      const oppColor = getOppositeColor(aiColor);
+      const win = checkFourInARow(bd);
+      if (win) {
+        if (win.winner === aiColor) return 100000;
+        if (win.winner === oppColor) return -100000;
+      }
+
+      let score = 0;
+      let myCount = 0;
+      let oppCount = 0;
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          if (bd[r][c] === aiColor) myCount++;
+          else if (bd[r][c] === oppColor) oppCount++;
+        }
+      }
+      score += (myCount - oppCount) * 45;
+
+      if (action.type === 'place' && remChipsCount >= 3) {
+        if (!state.knownMines[action.toR][action.toC]) {
+          score += 38;
+        } else {
+          score -= 120;
+        }
+      }
+
+      score += scoreLines(bd, aiColor) * 18;
+      score -= scoreLines(bd, oppColor) * 24;
+
+      return score + (Math.random() * 6 - 3);
+    }
+
+    function scoreLines(bd, color) {
+      let pts = 0;
+      const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          for (const [dr, dc] of dirs) {
+            if (r + dr * 3 < 0 || r + dr * 3 >= 6 || c + dc * 3 < 0 || c + dc * 3 >= 6) continue;
+            let own = 0;
+            let empty = 0;
+            for (let k = 0; k < 4; k++) {
+              const cell = bd[r + dr * k][c + dc * k];
+              if (cell === color) own++;
+              else if (cell === null) empty++;
+            }
+            if (own === 3 && empty === 1) pts += 12;
+            else if (own === 2 && empty === 2) pts += 3;
+          }
+        }
+      }
+      return pts;
+    }
+
+    function pickEasyAI(actions, aiColor) {
+      const places = actions.filter(a => a.type === 'place');
+      if (places.length > 0 && Math.random() < 0.65) {
+        return places[Math.floor(Math.random() * places.length)];
+      }
+      return actions[Math.floor(Math.random() * actions.length)];
+    }
+
+    function pickNormalAI(actions, aiColor) {
+      let bestScore = -Infinity;
+      let bestAction = actions[0];
+      const rem = state.remChips[aiColor];
+
+      for (const act of actions) {
+        const nextBd = simulateKnownAction(state.board, act, aiColor);
+        const sc = evaluateBoardFor(nextBd, aiColor, act, rem);
+        if (sc > bestScore) {
+          bestScore = sc;
+          bestAction = act;
+        }
+      }
+      return bestAction;
+    }
+
+    function pickHardAI(actions, aiColor) {
+      const oppColor = getOppositeColor(aiColor);
+      let bestScore = -Infinity;
+      let bestAction = actions[0];
+      const rem = state.remChips[aiColor];
+
+      for (const act of actions) {
+        const nextBd = simulateKnownAction(state.board, act, aiColor);
+        let sc = evaluateBoardFor(nextBd, aiColor, act, rem);
+
+        if (
+          act.type === 'move' &&
+          state.board[act.fromR][act.fromC] === oppColor &&
+          state.knownMines[act.toR][act.toC]
+        ) {
+          sc += 65;
+        }
+
+        if (
+          act.type === 'move' &&
+          state.board[act.fromR][act.fromC] === aiColor &&
+          state.knownMines[act.toR][act.toC]
+        ) {
+          sc -= 140;
+        }
+
+        if (sc > bestScore) {
+          bestScore = sc;
+          bestAction = act;
+        }
+      }
+      return bestAction;
+    }
+  </script>
+</body>
+</html>
+
+```
