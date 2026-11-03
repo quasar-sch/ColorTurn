@@ -2,11 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>COLOR TURN - 고전 심리 전략 보드게임</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Gowun+Batang:wght@400;700&family=Pretendard:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
+      --app-width: 100vw;
+      --app-height: 100dvh;
+
       /* 매트 고딕 다크 & 엔틱 골드 팔레트 */
       --bg-obsidian: #121110;
       --bg-umbral: #1c1917;
@@ -41,11 +44,15 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html, body {
       margin: 0;
-      width: 100vw;
-      height: 100vh;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      width: var(--app-width);
+      height: var(--app-height);
       overflow: hidden;
+      overscroll-behavior: none;
       font-family: 'Gowun Batang', 'Pretendard', serif;
       color: var(--text-parchment);
       background: radial-gradient(circle at 50% 35%, #26211d 0%, var(--bg-obsidian) 85%);
@@ -53,15 +60,21 @@
     }
 
     .app {
-      width: 100vw;
-      height: 100vh;
-      padding: clamp(8px, 1.5vw, 18px);
+      width: var(--app-width);
+      height: var(--app-height);
+      padding:
+        max(clamp(8px, 1.5vmin, 18px), env(safe-area-inset-top))
+        max(clamp(8px, 1.5vmin, 18px), env(safe-area-inset-right))
+        max(clamp(8px, 1.5vmin, 18px), env(safe-area-inset-bottom))
+        max(clamp(8px, 1.5vmin, 18px), env(safe-area-inset-left));
+      overflow: hidden;
     }
 
     .screen {
       display: none;
       width: 100%;
       height: 100%;
+      overflow: hidden;
     }
     .screen.active {
       display: grid;
@@ -78,14 +91,14 @@
       border: 2px solid var(--border-brass);
       background: var(--panel-bg);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 0 0 6px var(--bg-obsidian), inset 0 0 0 7px var(--border-iron);
-      padding: clamp(14px, 2.2vw, 26px);
+      padding: clamp(12px, 2vmin, 26px);
     }
 
     /* 고딕 모서리 장식 SVG */
     .gothic-corner {
       position: absolute;
-      width: clamp(38px, 5vw, 56px);
-      height: clamp(38px, 5vw, 56px);
+      width: clamp(34px, 4.8vmin, 56px);
+      height: clamp(34px, 4.8vmin, 56px);
       pointer-events: none;
       z-index: 2;
       opacity: 0.85;
@@ -115,7 +128,7 @@
       border-radius: 4px;
       padding: 11px 18px;
       font-family: 'Gowun Batang', 'Pretendard', serif;
-      font-size: clamp(13px, 1.6vw, 16px);
+      font-size: clamp(13px, 1.6vmin, 16px);
       font-weight: 700;
       cursor: pointer;
       color: var(--text-parchment);
@@ -159,22 +172,26 @@
       color: #f3dc99;
     }
 
-    /* 중앙 정렬 레이아웃 */
+    /* 중앙 정렬 레이아웃 (스크롤 없이 한 화면 자동 피팅) */
     .center-layout {
       height: 100%;
-      display: grid;
-      place-items: center;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
       position: relative;
       z-index: 3;
-      overflow-y: auto;
+      overflow: hidden;
     }
     .menu-box {
       width: min(680px, 100%);
       display: grid;
-      gap: clamp(10px, 1.8vh, 16px);
+      gap: clamp(10px, 1.6vmin, 16px);
       justify-items: center;
-      padding: 6px 0;
+      padding: 4px 0;
+      transform-origin: center center;
+      flex-shrink: 0;
     }
     .badge-gothic {
       padding: 4px 16px;
@@ -182,14 +199,14 @@
       background: #171412;
       color: var(--border-brass-light);
       font-family: 'Cinzel Decorative', serif;
-      font-size: clamp(11px, 1.3vw, 13px);
+      font-size: clamp(11px, 1.3vmin, 13px);
       font-weight: 700;
       letter-spacing: 0.14em;
     }
     .main-title {
       margin: 0;
       font-family: 'Cinzel Decorative', serif;
-      font-size: clamp(40px, 7vw, 72px);
+      font-size: clamp(38px, 6.8vmin, 72px);
       font-weight: 900;
       letter-spacing: 0.04em;
       line-height: 1;
@@ -198,12 +215,12 @@
     .sub-title {
       margin: 0;
       color: var(--text-muted);
-      font-size: clamp(14px, 1.8vw, 18px);
+      font-size: clamp(14px, 1.8vmin, 18px);
       font-weight: 700;
     }
     .screen-title {
       margin: 0;
-      font-size: clamp(24px, 4vw, 38px);
+      font-size: clamp(24px, 3.8vmin, 38px);
       font-weight: 700;
       color: var(--text-parchment);
       letter-spacing: 0.02em;
@@ -212,7 +229,7 @@
     /* 전략 팁 카드 (고딕 양피지/석판 스타일) */
     .tip-card {
       width: 100%;
-      padding: clamp(12px, 1.8vh, 16px) clamp(14px, 2vw, 20px);
+      padding: clamp(10px, 1.6vmin, 16px) clamp(14px, 2vmin, 20px);
       border-radius: 4px;
       background: var(--panel-inner);
       border: 1px solid var(--border-brass);
@@ -228,7 +245,7 @@
       gap: 8px;
     }
     .tip-badge {
-      font-size: clamp(11px, 1.3vw, 13px);
+      font-size: clamp(11px, 1.3vmin, 13px);
       font-weight: 700;
       color: var(--border-brass-light);
       letter-spacing: 0.04em;
@@ -243,7 +260,7 @@
       box-shadow: none;
     }
     .tip-title {
-      font-size: clamp(14px, 1.8vw, 17px);
+      font-size: clamp(14px, 1.8vmin, 17px);
       font-weight: 700;
       color: #f3e9d2;
     }
@@ -251,8 +268,8 @@
       margin: 0;
       color: var(--text-muted);
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(12px, 1.5vw, 14px);
-      line-height: 1.55;
+      font-size: clamp(12px, 1.5vmin, 14px);
+      line-height: 1.5;
       font-weight: 500;
     }
 
@@ -270,8 +287,8 @@
       border-radius: 4px;
       padding: 10px 14px;
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(12px, 1.5vw, 14px);
-      line-height: 1.48;
+      font-size: clamp(12px, 1.5vmin, 14px);
+      line-height: 1.45;
       color: var(--text-parchment);
     }
     .guide-item strong {
@@ -279,7 +296,7 @@
       color: var(--border-brass-light);
       display: block;
       margin-bottom: 3px;
-      font-size: clamp(13px, 1.6vw, 15px);
+      font-size: clamp(13px, 1.6vmin, 15px);
     }
 
     /* 모드 선택 카드 */
@@ -294,22 +311,22 @@
       background: var(--panel-inner);
       border: 1px solid var(--border-brass);
       border-radius: 4px;
-      padding: clamp(12px, 1.8vw, 18px);
+      padding: clamp(12px, 1.8vmin, 18px);
       display: grid;
       align-content: space-between;
       gap: 12px;
     }
     .mode-card h3 {
       margin: 0 0 6px 0;
-      font-size: clamp(16px, 2.1vw, 20px);
+      font-size: clamp(16px, 2.1vmin, 20px);
       color: var(--border-brass-light);
     }
     .mode-card p {
       margin: 0;
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(12px, 1.4vw, 13.5px);
+      font-size: clamp(12px, 1.4vmin, 13.5px);
       color: var(--text-muted);
-      line-height: 1.48;
+      line-height: 1.45;
     }
     .sub-options {
       display: grid;
@@ -351,8 +368,8 @@
       gap: 10px;
     }
     .btn-large {
-      min-height: clamp(48px, 6.8vh, 60px);
-      font-size: clamp(17px, 2.2vw, 21px);
+      min-height: clamp(46px, 6.2vmin, 60px);
+      font-size: clamp(16px, 2.1vmin, 21px);
     }
     .btn-row-2 {
       width: min(420px, 100%);
@@ -364,11 +381,13 @@
     /* 인게임 레이아웃 */
     .game-layout {
       height: 100%;
+      width: 100%;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: clamp(6px, 1.2vh, 12px);
+      gap: clamp(6px, 1.2vmin, 12px);
       position: relative;
       z-index: 3;
+      overflow: hidden;
     }
 
     /* 상단 HUD */
@@ -380,20 +399,21 @@
       background: var(--panel-inner);
       border: 1px solid var(--border-brass);
       border-radius: 4px;
-      padding: 8px 14px;
+      padding: clamp(6px, 1vmin, 8px) clamp(10px, 1.5vmin, 14px);
     }
     .player-status {
       display: flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
     }
     .player-status.right {
       justify-content: flex-end;
       text-align: right;
     }
     .chip-icon {
-      width: clamp(26px, 3.2vw, 32px);
-      height: clamp(26px, 3.2vw, 32px);
+      width: clamp(24px, 3.2vmin, 32px);
+      height: clamp(24px, 3.2vmin, 32px);
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -412,19 +432,24 @@
       flex-direction: column;
       gap: 2px;
       font-family: 'Pretendard', sans-serif;
+      min-width: 0;
     }
     .status-name {
-      font-size: clamp(11px, 1.3vw, 13px);
+      font-size: clamp(10px, 1.3vmin, 13px);
       color: var(--text-muted);
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .status-rem {
-      font-size: clamp(14px, 1.8vw, 18px);
+      font-size: clamp(13px, 1.8vmin, 18px);
       font-weight: 800;
       color: var(--text-parchment);
+      white-space: nowrap;
     }
     .turn-center {
-      padding: 6px 18px;
+      padding: clamp(4px, 0.8vmin, 6px) clamp(12px, 2vmin, 18px);
       border-radius: 4px;
       background: #171513;
       border: 2px solid var(--border-brass-light);
@@ -437,43 +462,45 @@
       color: #171513;
     }
     .turn-title {
-      font-size: clamp(15px, 2.1vw, 20px);
+      font-size: clamp(14px, 2vmin, 20px);
       font-weight: 700;
       white-space: nowrap;
     }
 
-    /* 보드 영역 (체스판 스타일로 가시성 확보) */
+    /* 보드 영역 (체스판 스타일로 가시성 확보 & 가로/세로 1:1 자동 맞춤) */
     .board-container {
       min-height: 0;
       min-width: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       overflow: hidden;
     }
     .zone-label {
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(11px, 1.3vw, 13px);
+      font-size: clamp(11px, 1.3vmin, 13px);
       font-weight: 700;
       letter-spacing: 0.04em;
       color: var(--border-brass-light);
+      line-height: 1.2;
+      flex-shrink: 0;
     }
     .board {
-      height: calc(100% - 42px);
-      max-height: 100%;
-      max-width: 100%;
       aspect-ratio: 1 / 1;
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(6, 1fr);
       gap: 3px;
-      padding: clamp(8px, 1.2vw, 12px);
+      padding: clamp(6px, 1.2vmin, 12px);
       background: var(--board-frame);
       border: 3px solid var(--border-brass);
       border-radius: 4px;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 0 2px #14110e;
+      flex-shrink: 0;
     }
 
     /* 체스판 교차 타일 */
@@ -485,6 +512,8 @@
       place-items: center;
       transition: background 0.12s ease, box-shadow 0.12s ease;
       perspective: 600px;
+      min-width: 0;
+      min-height: 0;
     }
     .tile.light-sq {
       background: var(--tile-light);
@@ -513,7 +542,7 @@
     }
     .tile.place-hint::after {
       content: "❖";
-      font-size: clamp(16px, 2.2vw, 22px);
+      font-size: clamp(14px, 2.2vmin, 22px);
       color: #7a1c24;
       pointer-events: none;
     }
@@ -615,16 +644,16 @@
       align-items: center;
     }
     .msg-banner {
-      min-height: 48px;
+      min-height: clamp(40px, 5.2vmin, 48px);
       display: flex;
       align-items: center;
-      padding: 8px 14px;
+      padding: 6px 14px;
       border-radius: 4px;
       background: var(--panel-inner);
       border: 1px solid var(--border-brass);
       color: var(--text-parchment);
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(12px, 1.5vw, 14.5px);
+      font-size: clamp(11.5px, 1.5vmin, 14.5px);
       font-weight: 700;
       line-height: 1.35;
     }
@@ -644,10 +673,10 @@
       gap: 6px;
     }
     .action-btns button {
-      min-height: 48px;
-      padding: 8px 12px;
+      min-height: clamp(40px, 5.2vmin, 48px);
+      padding: 6px 12px;
       font-family: 'Pretendard', sans-serif;
-      font-size: clamp(12px, 1.4vw, 13.5px);
+      font-size: clamp(11.5px, 1.4vmin, 13.5px);
       white-space: nowrap;
     }
 
@@ -666,7 +695,7 @@
     }
     .modal-card {
       width: min(620px, 100%);
-      max-height: 86vh;
+      max-height: calc(var(--app-height) - 32px);
       overflow-y: auto;
       background: var(--panel-bg);
       border: 2px solid var(--border-brass);
@@ -710,10 +739,10 @@
       }
       .action-btns button {
         flex: 1;
-        min-height: 42px;
+        min-height: 38px;
       }
       .msg-banner {
-        min-height: 42px;
+        min-height: 38px;
       }
     }
   </style>
@@ -932,10 +961,10 @@
         </div>
 
         <!-- 중앙 6x6 체스판 보드 -->
-        <div class="board-container">
-          <div class="zone-label">▲ 백(White) 첫 번째 줄 배치 구역 ▲</div>
+        <div id="boardContainer" class="board-container">
+          <div id="topZoneLabel" class="zone-label">▲ 백(White) 첫 번째 줄 배치 구역 ▲</div>
           <div id="board" class="board" aria-label="컬러턴 6x6 게임판"></div>
-          <div class="zone-label">▼ 흑(Black) 첫 번째 줄 배치 구역 ▼</div>
+          <div id="bottomZoneLabel" class="zone-label">▼ 흑(Black) 첫 번째 줄 배치 구역 ▼</div>
         </div>
 
         <!-- 하단 메시지 및 액션 버튼 -->
@@ -961,7 +990,7 @@
 
         <div class="menu-box">
           <div class="badge-gothic">MATCH FINISHED</div>
-          <h2 id="resultTitle" class="main-title" style="font-size:clamp(34px,5.8vw,60px); font-family:'Gowun Batang',serif;">흑 승리!</h2>
+          <h2 id="resultTitle" class="main-title" style="font-size:clamp(34px,5.8vmin,60px); font-family:'Gowun Batang',serif;">흑 승리!</h2>
           <div class="gothic-divider"><svg><use href="#gothic-div"/></svg></div>
           <p id="resultSub" class="sub-title">4개의 칩이 한 줄로 연결되었습니다.</p>
 
@@ -1078,10 +1107,80 @@
       winLine: []
     };
 
+    /* ==========================================================
+       디스플레이 한 화면 맞춤 엔진 (UI/UX 변경 없이 모든 기기 대응)
+       ========================================================== */
+    function fitScreenLayout() {
+      const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--app-width', `${vw}px`);
+      document.documentElement.style.setProperty('--app-height', `${vh}px`);
+
+      const activeScreen = document.querySelector('.screen.active');
+      if (!activeScreen) return;
+
+      // 1) 메뉴/설명/모드/결과 화면: 콘텐츠가 화면 높이나 폭을 넘으면 비율 유지 자동 축소
+      const centerLayout = activeScreen.querySelector('.center-layout');
+      const menuBox = activeScreen.querySelector('.menu-box');
+      if (centerLayout && menuBox) {
+        menuBox.style.transform = 'scale(1)';
+        const style = window.getComputedStyle(centerLayout);
+        const availW = centerLayout.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 8;
+        const availH = centerLayout.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - 8;
+        const naturalW = menuBox.offsetWidth;
+        const naturalH = menuBox.offsetHeight;
+
+        if (naturalW > 0 && naturalH > 0) {
+          const scale = Math.min(1, availW / naturalW, availH / naturalH);
+          menuBox.style.transform = `scale(${scale})`;
+        }
+      }
+
+      // 2) 본 게임 화면: 가로·세로 어떤 회전에서도 6x6 보드가 잘리지 않고 정사각형으로 딱 맞게 계산
+      if (activeScreen.id === 'gameScreen') {
+        const container = document.getElementById('boardContainer');
+        const boardEl = document.getElementById('board');
+        const topLbl = document.getElementById('topZoneLabel');
+        const botLbl = document.getElementById('bottomZoneLabel');
+
+        if (container && boardEl) {
+          boardEl.style.width = '0px';
+          boardEl.style.height = '0px';
+
+          const labelsH = (topLbl ? topLbl.offsetHeight : 18) + (botLbl ? botLbl.offsetHeight : 18) + 12;
+          const availW = container.clientWidth - 4;
+          const availH = container.clientHeight - labelsH;
+          const size = Math.max(140, Math.floor(Math.min(availW, availH)));
+
+          boardEl.style.width = `${size}px`;
+          boardEl.style.height = `${size}px`;
+        }
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       renderAllTipsModal();
       showRandomTip();
+      fitScreenLayout();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fitScreenLayout);
+      }
     });
+
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(fitScreenLayout);
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(fitScreenLayout, 100);
+      setTimeout(fitScreenLayout, 300);
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        requestAnimationFrame(fitScreenLayout);
+      });
+    }
 
     function renderAllTipsModal() {
       const ul = document.getElementById('allTipsList');
@@ -1100,6 +1199,7 @@
       }
       currentTipIndex = next;
       updateTipBoxes();
+      requestAnimationFrame(fitScreenLayout);
     }
 
     function updateTipBoxes() {
@@ -1123,6 +1223,7 @@
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(screenId).classList.add('active');
       showRandomTip();
+      requestAnimationFrame(fitScreenLayout);
     }
 
     function goIntroScreen() {
@@ -1164,13 +1265,13 @@
 
     function startGame(mode) {
       state.mode = mode;
-      initMatch();
       showScreen('gameScreen');
+      initMatch();
     }
 
     function restartCurrentGame() {
-      initMatch();
       showScreen('gameScreen');
+      initMatch();
     }
 
     function initMatch() {
@@ -1213,6 +1314,7 @@
       updateHUD();
       renderBoard();
       setBanner("대국이 시작되었습니다. 첫 줄 빈칸을 눌러 새 칩을 놓거나 판 위의 칩을 이동하세요.", "");
+      requestAnimationFrame(fitScreenLayout);
 
       if (state.mode === 'ai' && state.turn !== state.humanSide) {
         triggerAITurn();
@@ -1790,5 +1892,3 @@
   </script>
 </body>
 </html>
-
-```
